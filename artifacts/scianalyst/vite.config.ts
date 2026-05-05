@@ -70,7 +70,6 @@ export default defineConfig({
           if (id.includes("pptxgenjs") || id.includes("/jszip/")) return "pptxgenjs";
           if (id.includes("/node_modules/docx/")) return "docx";
           if (id.includes("/mammoth/")) return "mammoth";
-          if (id.includes("recharts") || id.includes("/d3-")) return "recharts";
           if (id.includes("@radix-ui")) return "radix-ui";
           if (id.includes("framer-motion")) return "framer-motion";
           if (id.includes("lucide-react")) return "lucide";
