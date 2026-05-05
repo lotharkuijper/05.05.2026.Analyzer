@@ -30,11 +30,14 @@ See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and pa
 
 Automatic sync to GitHub is configured via the post-merge script (`scripts/post-merge.sh`). After every task merge, the script pushes all tracked files to GitHub using the GitHub REST API through the Replit GitHub integration (connector proxy). No PAT or plain-text credentials are needed — authentication is handled by `@replit/connectors-sdk`.
 
-- **Sync script**: `scripts/github-sync.cjs` — uses the GitHub Git Data API (blobs, trees, commits, refs) via the connector proxy
+- **Active GitHub repo**: `lotharkuijper/05.05.2026.Analyzer` (migrated 2026-05-05 from `lotharkuijper/29.04.2026.MA.Article.Analyzer`, which is now obsolete)
+- **Repo override**: `scripts/post-merge.sh` exports `GITHUB_REPO="lotharkuijper/05.05.2026.Analyzer"` before running the sync. The sandbox prevents direct edits to `.git/config`, so the env var takes precedence over the local Git remote URL.
+- **Sync script**: `scripts/github-sync.cjs` — uses the GitHub Git Data API (blobs, trees, commits, refs) via the connector proxy. Reads `GITHUB_REPO` (format `owner/repo`) when set, otherwise parses `git remote get-url origin`.
 - **Post-merge script**: `scripts/post-merge.sh` — runs `pnpm install`, DB migrations, seeding, then GitHub sync
 - **Post-merge timeout**: 120 seconds
 - **Rate limiting**: 5 concurrent requests with 1.1s delay between batches, plus exponential backoff on 429s
-- **Netlify**: picks up new builds automatically from the GitHub repo
+- **Manual sync**: `GITHUB_REPO="lotharkuijper/05.05.2026.Analyzer" node scripts/github-sync.cjs`
+- **Downstream hosting**: connect Netlify / Vercel to the new repo so it picks up builds automatically.
 
 ## Auto-seeding
 

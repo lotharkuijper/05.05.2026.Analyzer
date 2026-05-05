@@ -102,9 +102,12 @@ router.post("/agents", async (req, res) => {
   }
 });
 
-router.patch("/agents/:id", async (req, res) => {
+router.patch("/agents/:id", async (req, res): Promise<void> => {
   const id = uuidParam.safeParse(req.params.id);
-  if (!id.success) return res.status(400).json({ error: "invalid id" });
+  if (!id.success) {
+    res.status(400).json({ error: "invalid id" });
+    return;
+  }
   const parsed = parseOrZodError(res, agentUpdateSchema, req.body?.row ?? req.body);
   if (!parsed.ok) return;
   try {
@@ -122,9 +125,12 @@ router.patch("/agents/:id", async (req, res) => {
   }
 });
 
-router.delete("/agents/:id", async (req, res) => {
+router.delete("/agents/:id", async (req, res): Promise<void> => {
   const id = uuidParam.safeParse(req.params.id);
-  if (!id.success) return res.status(400).json({ error: "invalid id" });
+  if (!id.success) {
+    res.status(400).json({ error: "invalid id" });
+    return;
+  }
   try {
     await db.delete(agentsTable).where(eq(agentsTable.id, id.data));
     res.json({ ok: true });
@@ -162,9 +168,12 @@ router.post("/documents", async (req, res) => {
   }
 });
 
-router.patch("/documents/:id", async (req, res) => {
+router.patch("/documents/:id", async (req, res): Promise<void> => {
   const id = uuidParam.safeParse(req.params.id);
-  if (!id.success) return res.status(400).json({ error: "invalid id" });
+  if (!id.success) {
+    res.status(400).json({ error: "invalid id" });
+    return;
+  }
   const parsed = parseOrZodError(res, documentUpdateSchema, req.body?.row ?? req.body);
   if (!parsed.ok) return;
   try {
@@ -179,9 +188,12 @@ router.patch("/documents/:id", async (req, res) => {
   }
 });
 
-router.delete("/documents/:id", async (req, res) => {
+router.delete("/documents/:id", async (req, res): Promise<void> => {
   const id = uuidParam.safeParse(req.params.id);
-  if (!id.success) return res.status(400).json({ error: "invalid id" });
+  if (!id.success) {
+    res.status(400).json({ error: "invalid id" });
+    return;
+  }
   try {
     await db.delete(documentsTable).where(eq(documentsTable.id, id.data));
     res.json({ ok: true });
@@ -192,13 +204,16 @@ router.delete("/documents/:id", async (req, res) => {
 
 // ---------- analyses ----------
 
-router.get("/analyses", async (req, res) => {
+router.get("/analyses", async (req, res): Promise<void> => {
   try {
     const orderCol = typeof req.query.order === "string" ? req.query.order : null;
     let rows;
     if (typeof req.query.eq_document_id === "string") {
       const did = uuidParam.safeParse(req.query.eq_document_id);
-      if (!did.success) return res.status(400).json({ error: "invalid eq_document_id" });
+      if (!did.success) {
+        res.status(400).json({ error: "invalid eq_document_id" });
+        return;
+      }
       const q = db.select().from(analysesTable).where(eq(analysesTable.document_id, did.data));
       rows = orderCol === "created_at" ? await q.orderBy(asc(analysesTable.created_at)) : await q;
     } else {
@@ -229,9 +244,12 @@ router.post("/analyses", async (req, res) => {
   }
 });
 
-router.patch("/analyses/:id", async (req, res) => {
+router.patch("/analyses/:id", async (req, res): Promise<void> => {
   const id = uuidParam.safeParse(req.params.id);
-  if (!id.success) return res.status(400).json({ error: "invalid id" });
+  if (!id.success) {
+    res.status(400).json({ error: "invalid id" });
+    return;
+  }
   const parsed = parseOrZodError(res, analysisUpdateSchema, req.body?.row ?? req.body);
   if (!parsed.ok) return;
   try {
@@ -254,9 +272,12 @@ router.patch("/analyses/:id", async (req, res) => {
   }
 });
 
-router.delete("/analyses/:id", async (req, res) => {
+router.delete("/analyses/:id", async (req, res): Promise<void> => {
   const id = uuidParam.safeParse(req.params.id);
-  if (!id.success) return res.status(400).json({ error: "invalid id" });
+  if (!id.success) {
+    res.status(400).json({ error: "invalid id" });
+    return;
+  }
   try {
     await db.delete(analysesTable).where(eq(analysesTable.id, id.data));
     res.json({ ok: true });

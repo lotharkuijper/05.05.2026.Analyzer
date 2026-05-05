@@ -26,16 +26,18 @@ const chatBodySchema = z.object({
   max_tokens: z.number().int().positive().max(8192).optional(),
 });
 
-router.post("/ai/chat", async (req, res) => {
+router.post("/ai/chat", async (req, res): Promise<void> => {
   if (!client) {
-    return res.status(503).json({
+    res.status(503).json({
       error:
         "AI integration is not provisioned. Set AI_INTEGRATIONS_OPENAI_BASE_URL and AI_INTEGRATIONS_OPENAI_API_KEY.",
     });
+    return;
   }
   const parsed = chatBodySchema.safeParse(req.body);
   if (!parsed.success) {
-    return res.status(400).json({ error: "validation failed", details: parsed.error.flatten() });
+    res.status(400).json({ error: "validation failed", details: parsed.error.flatten() });
+    return;
   }
   const { system, prompt, model, max_tokens } = parsed.data;
   const resolvedModel = (model && REQUESTED_TO_SUPPORTED_MODEL[model]) || "gpt-4o-mini";
