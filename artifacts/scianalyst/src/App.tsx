@@ -1,14 +1,23 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, lazy, Suspense } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { DashboardView } from './views/DashboardView';
 import { AgentsView } from './views/AgentsView';
-import { AnalysisView } from './views/AnalysisView';
-import { ReviewView } from './views/ReviewView';
 import { SettingsView } from './views/SettingsView';
 import type { Agent, ActiveView, ApiKeys } from './types';
 import { supabase } from './lib/supabase';
 import { LanguageContext, useLanguage, t as tFn } from './lib/i18n';
 import type { TranslationKey } from './lib/i18n';
+
+const AnalysisView = lazy(() => import('./views/AnalysisView').then((m) => ({ default: m.AnalysisView })));
+const ReviewView = lazy(() => import('./views/ReviewView').then((m) => ({ default: m.ReviewView })));
+
+function ViewFallback() {
+  return (
+    <div className="flex items-center justify-center h-full p-12 text-slate-500 dark:text-slate-400 text-sm">
+      Loading…
+    </div>
+  );
+}
 
 const API_KEYS_STORAGE_KEY = 'scianalyst_api_keys';
 
@@ -135,10 +144,14 @@ export default function App() {
                 <DashboardView onNavigate={(view) => handleNavigate(view as ActiveView)} />
               )}
               {activeView === 'analysis' && (
-                <AnalysisView agents={agents} apiKeys={apiKeys} />
+                <Suspense fallback={<ViewFallback />}>
+                  <AnalysisView agents={agents} apiKeys={apiKeys} />
+                </Suspense>
               )}
               {activeView === 'review' && (
-                <ReviewView agents={agents} apiKeys={apiKeys} />
+                <Suspense fallback={<ViewFallback />}>
+                  <ReviewView agents={agents} apiKeys={apiKeys} />
+                </Suspense>
               )}
               {activeView === 'agents' && (
                 <AgentsView
