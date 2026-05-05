@@ -1,5 +1,5 @@
 import express, { type Express, type Request, type Response, type NextFunction } from "express";
-import cors from "cors";
+import cors, { type CorsOptions } from "cors";
 import pinoHttp from "pino-http";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -8,6 +8,43 @@ import router from "./routes";
 import { logger } from "./lib/logger";
 
 const app: Express = express();
+
+function buildCorsOptions(): CorsOptions | undefined {
+  if (process.env["NODE_ENV"] !== "production") {
+    return undefined;
+  }
+
+  const allowed = new Set<string>();
+  const addOrigin = (host: string) => {
+    const trimmed = host.trim();
+    if (!trimmed) return;
+    if (/^https?:\/\//i.test(trimmed)) {
+      allowed.add(trimmed.replace(/\/$/, ""));
+    } else {
+      allowed.add(`https://${trimmed}`);
+    }
+  };
+
+  for (const host of (process.env["REPLIT_DOMAINS"] ?? "").split(",")) {
+    addOrigin(host);
+  }
+  for (const host of (process.env["ALLOWED_ORIGINS"] ?? "").split(",")) {
+    addOrigin(host);
+  }
+
+  const allowList = [...allowed];
+  logger.info({ allowList }, "CORS allow-list configured");
+
+  return {
+    origin(origin, callback) {
+      if (!origin) return callback(null, true);
+      if (allowList.includes(origin)) return callback(null, true);
+      logger.warn({ origin }, "Blocked CORS request from disallowed origin");
+      return callback(null, false);
+    },
+    credentials: true,
+  };
+}
 
 app.use(
   pinoHttp({
@@ -28,7 +65,8 @@ app.use(
     },
   }),
 );
-app.use(cors());
+const corsOptions = buildCorsOptions();
+app.use(corsOptions ? cors(corsOptions) : cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

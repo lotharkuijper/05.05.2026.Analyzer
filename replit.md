@@ -87,6 +87,15 @@ PORT=25961 BASE_PATH=/ pnpm --filter @workspace/scianalyst run build && pnpm --f
 
 > Note: `.replit`'s `[deployment].build`/`run` settings are managed by Replit's deployment tooling and cannot be edited from the agent's file editor. In this stack they would be ignored anyway — `artifact.toml` and the root `build:production` script provide the same wiring through the supported paths.
 
+### CORS allow-list
+
+In production (`NODE_ENV === "production"`), the API server restricts CORS to the deployment's own domain(s). The allow-list is built from:
+
+- `REPLIT_DOMAINS` — set automatically by Replit; comma-separated list of all attached domains (the auto-generated `*.replit.app` domain plus any custom domains you've linked in the Publishing UI).
+- `ALLOWED_ORIGINS` — optional, comma-separated additional origins. Add an entry here if you need to allow another origin that isn't already attached as a Replit domain (e.g. a separate marketing site that calls the API). Entries can be either a bare host (`example.com`, normalized to `https://example.com`) or a full origin (`https://example.com`).
+
+Same-origin requests from the SPA work without CORS because the frontend and API share the same domain in production. Requests with no `Origin` header (e.g. `curl`, server-to-server) are always allowed. In development, CORS stays fully permissive so the Replit dev preview iframe keeps working.
+
 ### Required production secrets
 
 Most are auto-provisioned by Replit integrations and carry over from dev:
