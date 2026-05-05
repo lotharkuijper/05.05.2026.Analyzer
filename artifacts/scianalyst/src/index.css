@@ -1,0 +1,155 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    @apply antialiased;
+    font-family: 'Inter', system-ui, sans-serif;
+    background-color: #f1f5f9;
+    color: #0f172a;
+  }
+
+  .dark body {
+    background-color: #020617;
+    color: #ffffff;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #0f172a;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #334155;
+    border-radius: 9999px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #475569;
+  }
+}
+
+/* ── Light mode overrides ──────────────────────────────────────────────────── */
+/* Applied when the html element does NOT have .dark (light mode is active).   */
+
+/* Slate-950 → white */
+html:not(.dark) .bg-slate-950 { background-color: #ffffff !important; }
+
+/* Slate-900 → sky-50 */
+html:not(.dark) .bg-slate-900 { background-color: #f0f9ff !important; }
+html:not(.dark) .bg-slate-900\/60 { background-color: #f0f9ff !important; }
+
+/* Slate-800 → white */
+html:not(.dark) .bg-slate-800 { background-color: #ffffff !important; }
+html:not(.dark) .bg-slate-800\/50 { background-color: #f0f9ff !important; }
+html:not(.dark) .bg-slate-800\/80 { background-color: #ffffffd0 !important; }
+html:not(.dark) .bg-slate-800\/40 { background-color: #f0f9ff80 !important; }
+
+/* Slate-700 → slate-200 */
+html:not(.dark) .bg-slate-700 { background-color: #e2e8f0 !important; }
+html:not(.dark) .bg-slate-700\/80 { background-color: #e2e8f0cc !important; }
+html:not(.dark) .bg-slate-700\/30 { background-color: #e2e8f050 !important; }
+
+/* Borders */
+html:not(.dark) .border-slate-800 { border-color: #e2e8f0 !important; }
+html:not(.dark) .border-slate-700 { border-color: #cbd5e1 !important; }
+html:not(.dark) .border-slate-700\/50 { border-color: #cbd5e180 !important; }
+html:not(.dark) .border-slate-700\/30 { border-color: #cbd5e150 !important; }
+html:not(.dark) .border-slate-600 { border-color: #94a3b8 !important; }
+
+/* Text colours */
+html:not(.dark) .text-white { color: #0f172a !important; }
+html:not(.dark) .text-slate-100 { color: #1e293b !important; }
+html:not(.dark) .text-slate-200 { color: #1e293b !important; }
+html:not(.dark) .text-slate-300 { color: #334155 !important; }
+html:not(.dark) .text-slate-400 { color: #475569 !important; }
+html:not(.dark) .text-slate-500 { color: #64748b !important; }
+html:not(.dark) .text-slate-600 { color: #94a3b8 !important; }
+
+/* Hover backgrounds */
+html:not(.dark) .hover\:bg-slate-800:hover { background-color: #e0f2fe !important; }
+html:not(.dark) .hover\:bg-slate-900:hover { background-color: #f0f9ff !important; }
+html:not(.dark) .hover\:bg-slate-700\/30:hover { background-color: #e0f2fe50 !important; }
+
+/* Hover borders */
+html:not(.dark) .hover\:border-slate-500:hover { border-color: #7dd3fc !important; }
+html:not(.dark) .hover\:border-slate-600:hover { border-color: #7dd3fc !important; }
+
+/* Dividers */
+html:not(.dark) .divide-slate-700 > * + * { border-color: #e2e8f0 !important; }
+html:not(.dark) .divide-slate-700\/50 > * + * { border-color: #f1f5f9 !important; }
+
+/* Accent colours — kept vivid, just darkened slightly for contrast on white */
+html:not(.dark) .text-sky-400 { color: #0284c7 !important; }
+html:not(.dark) .text-sky-400\/70 { color: #0284c7b0 !important; }
+html:not(.dark) .text-emerald-400 { color: #059669 !important; }
+html:not(.dark) .text-amber-400 { color: #b45309 !important; }
+html:not(.dark) .text-amber-400\/80 { color: #b45309cc !important; }
+
+html:not(.dark) .bg-sky-500\/20 { background-color: #bae6fd80 !important; }
+html:not(.dark) .bg-sky-500\/10 { background-color: #e0f2fe !important; }
+html:not(.dark) .border-sky-500\/20 { border-color: #7dd3fc !important; }
+html:not(.dark) .border-sky-500\/30 { border-color: #38bdf8 !important; }
+html:not(.dark) .bg-sky-400 { background-color: #0ea5e9 !important; }
+
+html:not(.dark) .bg-emerald-500\/60 { background-color: #34d39999 !important; }
+html:not(.dark) .text-emerald-400 { color: #059669 !important; }
+html:not(.dark) .bg-amber-500\/10 { background-color: #fef3c780 !important; }
+html:not(.dark) .bg-amber-500\/15 { background-color: #fef3c780 !important; }
+html:not(.dark) .border-amber-500\/30 { border-color: #fbbf24 !important; }
+
+/* Code and pre */
+html:not(.dark) code { background-color: #e0f2fe !important; color: #0369a1 !important; }
+html:not(.dark) pre {
+  background-color: #f0f9ff !important;
+  border-color: #bae6fd !important;
+  color: #0f172a !important;
+}
+
+/* HR */
+html:not(.dark) hr { border-color: #e2e8f0 !important; }
+
+/* In-UI tables */
+html:not(.dark) table thead tr { background-color: #e0f2fe !important; }
+html:not(.dark) table thead th { color: #0369a1 !important; border-color: #bae6fd !important; }
+html:not(.dark) table tbody tr:nth-child(odd) { background-color: #f0f9ff !important; }
+html:not(.dark) table tbody tr:nth-child(even) { background-color: #ffffff !important; }
+html:not(.dark) table td { color: #1e293b !important; border-color: #e0f2fe !important; }
+
+/* Gradient backgrounds used in headers */
+html:not(.dark) .from-slate-900 { --tw-gradient-from: #f0f9ff !important; }
+html:not(.dark) .via-slate-950 { --tw-gradient-via: #e0f2fe !important; }
+html:not(.dark) .to-slate-900 { --tw-gradient-to: #f0f9ff !important; }
+
+html:not(.dark) .from-sky-500\/10 { --tw-gradient-from: #e0f2fe !important; }
+
+@layer components {
+  .animate-fade-in {
+    animation: fadeIn 0.2s ease-out;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.3s ease-out;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
