@@ -15,7 +15,10 @@ run = "pnpm --filter @workspace/api-server run dev"
 [services.production]
 
 [services.production.build]
-args = ["pnpm", "--filter", "@workspace/api-server", "run", "build"]
+# Runs `drizzle-kit push` to sync the database schema before bundling so the
+# production database always matches the latest schema on deploy. Idempotent —
+# safe to run on every build.
+args = ["pnpm", "--filter", "@workspace/api-server", "run", "build:production"]
 
 [services.production.build.env]
 NODE_ENV = "production"

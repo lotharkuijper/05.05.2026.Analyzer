@@ -44,3 +44,14 @@ Automatic sync to GitHub is configured via the post-merge script (`scripts/post-
 The API server automatically seeds canonical agents (De Eindredacteur, De Reviewer, De Boekenschrijver) on startup via `seedScianalystAgents()` from `@workspace/db/seed`. This ensures any new deployment — Replit or otherwise — always has the correct agents with proper `is_synthesizer`/`is_reviewer` flags. The seed is idempotent: it matches by exact canonical name, inserts if missing, and refreshes prompt/role/color/flags on existing rows. It never deletes or modifies user-created agents.
 
 Manual seed: `pnpm --filter @workspace/db run seed:scianalyst`
+
+## Auto schema-push on deploy
+
+The API server's production build runs `drizzle-kit push` before bundling so the database schema is always in sync on publish (including first deploys and post-schema-change deploys). This is wired through:
+
+- `artifacts/api-server/package.json` — `build:production` script: `pnpm run db:push && pnpm run build`
+- `artifacts/api-server/.replit-artifact/artifact.toml` — `[services.production.build].args` invokes `build:production`
+
+`drizzle-kit push` is idempotent (no-op when the schema already matches). Dev (`pnpm run dev`) intentionally still calls plain `build` — schema sync in dev is handled by `scripts/post-merge.sh`.
+
+**For non-Replit deploy pipelines (e.g. an external CI building the API server):** invoke `pnpm --filter @workspace/api-server run build:production` instead of `build`, otherwise the schema push is skipped and the deployed app may hit "relation does not exist" errors.
