@@ -6,8 +6,6 @@ import {
 import React, { useState, useRef, useCallback } from 'react';
 import type { Agent, UploadedDocument, Analysis, ApiKeys } from '../types';
 import { runAgentAnalysis, runSynthesisAgent } from '../lib/aiProviders';
-import { parseDocument } from '../lib/documentParser';
-import { exportToDocx, exportToPptx, exportToPoster } from '../lib/exporters';
 import { supabase } from '../lib/supabase';
 import { useT } from '../lib/i18n';
 
@@ -218,6 +216,7 @@ export function AnalysisView({ agents, apiKeys }: AnalysisViewProps) {
   const uploadDocument = useCallback(async (file: File) => {
     setUploading(true);
     try {
+      const { parseDocument } = await import('../lib/documentParser');
       const parsed = await parseDocument(file);
       const ext = file.name.toLowerCase().endsWith('.pdf') ? 'pdf' : 'docx';
 
@@ -384,6 +383,7 @@ export function AnalysisView({ agents, apiKeys }: AnalysisViewProps) {
       .map((a) => ({ ...a, agent: agents.find((ag) => ag.id === a.agent_id)! }))
       .filter((a) => a.agent);
     try {
+      const { exportToDocx } = await import('../lib/exporters');
       await exportToDocx(selectedDoc, completedAnalyses, synthesisResult, lang);
     } catch (err) {
       alert(`Word export mislukt: ${err instanceof Error ? err.message : String(err)}`);
@@ -397,6 +397,7 @@ export function AnalysisView({ agents, apiKeys }: AnalysisViewProps) {
       .map((a) => ({ ...a, agent: agents.find((ag) => ag.id === a.agent_id)! }))
       .filter((a) => a.agent);
     try {
+      const { exportToPptx } = await import('../lib/exporters');
       await exportToPptx(selectedDoc, completedAnalyses, synthesisResult, lang);
     } catch (err) {
       alert(`PowerPoint export mislukt: ${err instanceof Error ? err.message : String(err)}`);
@@ -410,6 +411,7 @@ export function AnalysisView({ agents, apiKeys }: AnalysisViewProps) {
       .map((a) => ({ ...a, agent: agents.find((ag) => ag.id === a.agent_id)! }))
       .filter((a) => a.agent);
     try {
+      const { exportToPoster } = await import('../lib/exporters');
       await exportToPoster(selectedDoc, completedAnalyses, synthesisResult, lang);
     } catch (err) {
       alert(`Poster export mislukt: ${err instanceof Error ? err.message : String(err)}`);

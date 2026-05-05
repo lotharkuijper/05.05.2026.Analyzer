@@ -7,10 +7,8 @@ import {
 import React, { useState, useRef, useCallback } from 'react';
 import type { Agent, UploadedDocument, Analysis, ApiKeys, ReviewDocumentResult, ReviewRunState } from '../types';
 import { runAgentAnalysis, runReviewerAgent } from '../lib/aiProviders';
-import { parseDocument } from '../lib/documentParser';
 import { supabase } from '../lib/supabase';
 import { useT } from '../lib/i18n';
-import { exportReviewToDocx } from '../lib/exporters';
 
 interface ReviewViewProps {
   agents: Agent[];
@@ -195,6 +193,7 @@ export function ReviewView({ agents, apiKeys }: ReviewViewProps) {
 
   const uploadDocument = useCallback(async (file: File): Promise<UploadedDocument | null> => {
     try {
+      const { parseDocument } = await import('../lib/documentParser');
       const parsed = await parseDocument(file);
       const ext = file.name.toLowerCase().endsWith('.pdf') ? 'pdf' : 'docx';
       const { data, error } = await supabase.from('documents').insert({
@@ -435,6 +434,7 @@ export function ReviewView({ agents, apiKeys }: ReviewViewProps) {
   const handleExportDocx = async () => {
     if (!reviewText) return;
     try {
+      const { exportReviewToDocx } = await import('../lib/exporters');
       await exportReviewToDocx(reviewText, reviewDocs.length, lang);
     } catch (err) {
       alert(`Word export mislukt: ${err instanceof Error ? err.message : String(err)}`);

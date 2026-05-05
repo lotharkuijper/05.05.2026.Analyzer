@@ -62,6 +62,29 @@ export default defineConfig({
   build: {
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (!id.includes("node_modules")) return undefined;
+          if (id.includes("pdfjs-dist")) return "pdfjs";
+          if (id.includes("pptxgenjs") || id.includes("/jszip/")) return "pptxgenjs";
+          if (id.includes("/node_modules/docx/")) return "docx";
+          if (id.includes("/mammoth/")) return "mammoth";
+          if (id.includes("recharts") || id.includes("/d3-")) return "recharts";
+          if (id.includes("@radix-ui")) return "radix-ui";
+          if (id.includes("framer-motion")) return "framer-motion";
+          if (id.includes("lucide-react")) return "lucide";
+          if (id.includes("react-icons")) return "react-icons";
+          if (id.includes("@supabase") || id.includes("@tanstack/react-query")) return "data";
+          if (
+            /\/node_modules\/(react|react-dom|scheduler|use-sync-external-store)\//.test(id)
+          ) {
+            return "react-vendor";
+          }
+          return undefined;
+        },
+      },
+    },
   },
   server: {
     port,

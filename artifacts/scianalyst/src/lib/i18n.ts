@@ -99,6 +99,26 @@ const translations = {
     sectionReviewIntegrator: 'Review-integrator',
     reviewIntegratorHint: 'Kies wie alle bevindingen samenbrengt: de Reviewer maakt een systematische review, de Boekenschrijver schrijft een doorlopend boek.',
 
+    // Specialisten / Integratoren
+    specialistsSection: 'Specialisten',
+    integratorsSection: 'Integratoren',
+    specialistsSectionHint: 'Analyseren elk artikel afzonderlijk',
+    integratorsSectionHint: 'Brengen de bevindingen van Specialisten samen',
+    specialistBadge: 'Specialist',
+    integratorBadge: 'Integrator',
+    editingSpecialist: 'Specialist bewerken',
+    editingIntegrator: 'Integrator bewerken',
+    newSpecialist: 'Nieuwe Specialist',
+    newIntegrator: 'Nieuwe Integrator',
+    integratorColorNote: 'Integratoren krijgen automatisch een regenboog-markering — je hoeft geen kleur te kiezen.',
+    fieldAgentKind: 'Type agent',
+    kindSpecialistLabel: 'Specialist',
+    kindSpecialistHint: 'Analyseert één artikel tegelijk',
+    kindSynthesizerLabel: 'Eind-integrator',
+    kindSynthesizerHint: 'Sluit Analyse af',
+    kindReviewerLabel: 'Review-integrator',
+    kindReviewerHint: 'Sluit Review af',
+
     // Agent modal
     editAgent: 'Agent bewerken',
     fieldName: 'Naam *',
@@ -280,6 +300,26 @@ const translations = {
     fieldIsReviewer: 'Review integrator (closes Review)',
     sectionReviewIntegrator: 'Review integrator',
     reviewIntegratorHint: 'Pick who brings all findings together: the Reviewer writes a systematic review, the Book Writer writes a flowing book.',
+
+    // Specialists / Integrators
+    specialistsSection: 'Specialists',
+    integratorsSection: 'Integrators',
+    specialistsSectionHint: 'Analyze each paper individually',
+    integratorsSectionHint: 'Bring the Specialists\' findings together',
+    specialistBadge: 'Specialist',
+    integratorBadge: 'Integrator',
+    editingSpecialist: 'Edit specialist',
+    editingIntegrator: 'Edit integrator',
+    newSpecialist: 'New Specialist',
+    newIntegrator: 'New Integrator',
+    integratorColorNote: 'Integrators get an automatic rainbow marker — no color to pick.',
+    fieldAgentKind: 'Agent type',
+    kindSpecialistLabel: 'Specialist',
+    kindSpecialistHint: 'Analyzes one paper at a time',
+    kindSynthesizerLabel: 'Final integrator',
+    kindSynthesizerHint: 'Closes Analysis',
+    kindReviewerLabel: 'Review integrator',
+    kindReviewerHint: 'Closes Review',
 
     // Agent modal
     editAgent: 'Edit agent',

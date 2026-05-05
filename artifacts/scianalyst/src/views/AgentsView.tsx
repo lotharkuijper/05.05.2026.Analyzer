@@ -4,6 +4,7 @@ import type { Agent } from '../types';
 import { AgentCard } from '../components/AgentCard';
 import { AgentModal } from '../components/AgentModal';
 import { useT } from '../lib/i18n';
+import { getAgentKind, RAINBOW_GRADIENT } from '../lib/agentKind';
 
 interface AgentsViewProps {
   agents: Agent[];
@@ -80,8 +81,10 @@ export function AgentsView({ agents, onCreateAgent, onUpdateAgent, onDeleteAgent
           </button>
         </div>
       ) : (
-        <div className="grid gap-3">
-          {agents.map((agent) => (
+        (() => {
+          const specialists = agents.filter((a) => getAgentKind(a) === 'specialist');
+          const integrators = agents.filter((a) => getAgentKind(a) === 'integrator');
+          const renderCard = (agent: Agent) => (
             <AgentCard
               key={agent.id}
               agent={agent}
@@ -91,8 +94,50 @@ export function AgentsView({ agents, onCreateAgent, onUpdateAgent, onDeleteAgent
                 if (a) handleDeleteRequest(a);
               }}
             />
-          ))}
-        </div>
+          );
+          return (
+            <div className="space-y-6">
+              <section>
+                <div className="flex items-baseline justify-between mb-2 px-1">
+                  <h2 className="text-xs font-semibold text-slate-300 uppercase tracking-wider">
+                    {t('specialistsSection')}
+                  </h2>
+                  <span className="text-xs text-slate-500">{t('specialistsSectionHint')}</span>
+                </div>
+                <div className="grid gap-3">
+                  {specialists.length > 0 ? (
+                    specialists.map(renderCard)
+                  ) : (
+                    <p className="text-xs text-slate-500 italic px-1 py-2">—</p>
+                  )}
+                </div>
+              </section>
+
+              <div
+                className="h-1 rounded-full opacity-70"
+                style={{ background: RAINBOW_GRADIENT }}
+                role="separator"
+                aria-label={`${t('specialistsSection')} / ${t('integratorsSection')}`}
+              />
+
+              <section>
+                <div className="flex items-baseline justify-between mb-2 px-1">
+                  <h2 className="text-xs font-semibold text-slate-300 uppercase tracking-wider">
+                    {t('integratorsSection')}
+                  </h2>
+                  <span className="text-xs text-slate-500">{t('integratorsSectionHint')}</span>
+                </div>
+                <div className="grid gap-3">
+                  {integrators.length > 0 ? (
+                    integrators.map(renderCard)
+                  ) : (
+                    <p className="text-xs text-slate-500 italic px-1 py-2">—</p>
+                  )}
+                </div>
+              </section>
+            </div>
+          );
+        })()
       )}
 
       {modalOpen && (

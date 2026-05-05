@@ -55,3 +55,61 @@ The API server's production build runs `drizzle-kit push` before bundling so the
 `drizzle-kit push` is idempotent (no-op when the schema already matches). Dev (`pnpm run dev`) intentionally still calls plain `build` — schema sync in dev is handled by `scripts/post-merge.sh`.
 
 **For non-Replit deploy pipelines (e.g. an external CI building the API server):** invoke `pnpm --filter @workspace/api-server run build:production` instead of `build`, otherwise the schema push is skipped and the deployed app may hit "relation does not exist" errors.
+
+## Replit Deployment (Publishing)
+
+The project is configured for one-click publishing on Replit Autoscale. There are **two equivalent production paths**, both verified to work, so the deployment is robust regardless of which one Replit's publisher honors first:
+
+### Path A — Multi-artifact (path-based routing, default for pnpm workspaces)
+
+Each artifact has its own `[services.production]` block in `.replit-artifact/artifact.toml`:
+
+- **`scianalyst` (web, `/`)** — Vite SPA built to `artifacts/scianalyst/dist/public`, served as static files with `/* → /index.html` SPA rewrite (`serve = "static"`).
+- **`api-server` (api, `/api`)** — Express bundle (`artifacts/api-server/dist/index.mjs`) run with Node. Build runs `db:push` first (see "Auto schema-push on deploy" above). Startup health check on `/api/healthz`.
+
+The deployment skill notes that in pnpm workspaces, `.replit`'s `[deployment].build`/`run` is ignored and each artifact's `artifact.toml` owns its own build/run. The artifact files are the source of truth.
+
+### Path B — Single-port (Express serves everything)
+
+`artifacts/api-server/src/app.ts` detects `NODE_ENV === "production"` and, if it finds the Vite build at `../../scianalyst/dist/public`, additionally:
+
+- Serves the static assets (`/assets/*`, `/vite.svg`, etc.) with a 1-hour cache.
+- Falls back to `index.html` for any non-`/api/*` GET (SPA routes like `/agents`, `/dashboard` resolve to the React app).
+- Leaves `/api/*` routes untouched — unknown API paths return a real `404`, never the SPA fallback.
+
+This means the api-server bundle alone is a complete, single-process deployment. Useful as a defensive fallback and for off-Replit hosts (Render, Fly, Railway, etc.).
+
+The root-level `pnpm run build:production` script builds both bundles in one command:
+
+```
+PORT=25961 BASE_PATH=/ pnpm --filter @workspace/scianalyst run build && pnpm --filter @workspace/api-server run build:production
+```
+
+> Note: `.replit`'s `[deployment].build`/`run` settings are managed by Replit's deployment tooling and cannot be edited from the agent's file editor. In this stack they would be ignored anyway — `artifact.toml` and the root `build:production` script provide the same wiring through the supported paths.
+
+### Required production secrets
+
+Most are auto-provisioned by Replit integrations and carry over from dev:
+
+- `DATABASE_URL` — provisioned by the Replit PostgreSQL integration. **Required.**
+- `AI_INTEGRATIONS_OPENAI_API_KEY` and `AI_INTEGRATIONS_OPENAI_BASE_URL` — provisioned by the Replit AI Integrations (OpenAI proxy). **Required for AI features.**
+- `GITHUB_REPO` and Replit GitHub integration credentials — only needed if the post-merge GitHub sync should run in production (normally not — sync runs on the dev container after task merges).
+
+`PORT` and `NODE_ENV` are set automatically by `artifact.toml` and should not be overridden.
+
+### Smoke-tested locally
+
+End-to-end verification before publishing:
+
+- `pnpm run build:production` → `db:push` reports "No changes detected", Vite static bundle + esbuild api-server bundle both produced cleanly.
+- `PORT=8090 NODE_ENV=production node artifacts/api-server/dist/index.mjs` → server listens, agent seed completes, and:
+  - `GET /api/healthz` → `200 {"status":"ok"}`
+  - `GET /` → `200` `index.html` (706 bytes)
+  - `GET /assets/index-*.css` → `200` (79 KB built asset)
+  - `GET /agents` (SPA route) → `200` `index.html` (fallback works)
+  - `GET /api/nonexistent` → `404` (no SPA fallback for API)
+
+### Notes
+
+- Deployment target is `autoscale` (set in `.replit`) — appropriate for this stateless web + REST API stack.
+- Geography is locked at first publish; the user selects it in the Publishing UI's Advanced section before clicking Publish (Core/Pro/Enterprise plans only — Free defaults to North America).

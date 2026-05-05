@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import type { Agent, ApiProvider } from '../types';
 import { getModelsForProvider, getDefaultModelForProvider } from '../lib/aiProviders';
 import { useT } from '../lib/i18n';
+import { RAINBOW_GRADIENT, getAgentKind, getIntegratorSubKind } from '../lib/agentKind';
 
 interface AgentModalProps {
   agent: Agent | null;
@@ -11,6 +12,8 @@ interface AgentModalProps {
 }
 
 const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#ec4899', '#06b6d4', '#84cc16', '#f97316'];
+
+type AgentKindOption = 'specialist' | 'synthesizer' | 'reviewer';
 
 const BLANK: Omit<Agent, 'id' | 'created_at' | 'updated_at'> = {
   name: '',
@@ -23,6 +26,11 @@ const BLANK: Omit<Agent, 'id' | 'created_at' | 'updated_at'> = {
   is_synthesizer: false,
   color: '#3b82f6',
 };
+
+function flagsToKind(form: Pick<Agent, 'is_synthesizer' | 'is_reviewer'>): AgentKindOption {
+  if (getAgentKind(form) === 'specialist') return 'specialist';
+  return getIntegratorSubKind(form) ?? 'specialist';
+}
 
 export function AgentModal({ agent, onSave, onClose }: AgentModalProps) {
   const { t } = useT();
@@ -50,21 +58,95 @@ export function AgentModal({ agent, onSave, onClose }: AgentModalProps) {
     setForm((p) => ({ ...p, api_provider: provider, model: getDefaultModelForProvider(provider) }));
   };
 
+  const kind = flagsToKind(form);
+  const isIntegrator = kind !== 'specialist';
+
+  const handleKindChange = (next: AgentKindOption) => {
+    setForm((p) => ({
+      ...p,
+      is_synthesizer: next === 'synthesizer',
+      is_reviewer: next === 'reviewer',
+      // reset default flag when switching role; user can re-tick
+      is_default: next === kind ? p.is_default : false,
+    }));
+  };
+
   const valid = form.name.trim() && form.role.trim() && form.system_prompt.trim();
+
+  const titleText = agent
+    ? isIntegrator ? t('editingIntegrator') : t('editingSpecialist')
+    : isIntegrator ? t('newIntegrator') : t('newSpecialist');
+
+  const kindOptions: { id: AgentKindOption; label: string; hint: string; rainbow: boolean }[] = [
+    { id: 'specialist', label: t('kindSpecialistLabel'), hint: t('kindSpecialistHint'), rainbow: false },
+    { id: 'synthesizer', label: t('kindSynthesizerLabel'), hint: t('kindSynthesizerHint'), rainbow: true },
+    { id: 'reviewer', label: t('kindReviewerLabel'), hint: t('kindReviewerHint'), rainbow: true },
+  ];
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm">
       <div className="bg-slate-800 border border-slate-700 rounded-t-2xl sm:rounded-2xl w-full sm:max-w-xl shadow-2xl max-h-[92vh] sm:max-h-[90vh] flex flex-col">
         <div className="flex items-center justify-between p-4 sm:p-5 border-b border-slate-700">
-          <h2 className="text-base font-semibold text-white">
-            {agent ? t('editAgent') : t('newAgent')}
-          </h2>
+          <div className="flex items-center gap-3 min-w-0">
+            {isIntegrator ? (
+              <span
+                className="w-3.5 h-3.5 rounded-full flex-shrink-0 border border-white/30"
+                style={{ background: RAINBOW_GRADIENT }}
+                aria-hidden="true"
+              />
+            ) : (
+              <span
+                className="w-3.5 h-3.5 rounded-full flex-shrink-0 border border-white/20"
+                style={{ backgroundColor: form.color }}
+                aria-hidden="true"
+              />
+            )}
+            <h2 className="text-base font-semibold text-white truncate">
+              {titleText}
+            </h2>
+          </div>
           <button onClick={onClose} className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors">
             <X className="w-5 h-5" />
           </button>
         </div>
 
         <div className="overflow-y-auto flex-1 p-4 sm:p-5 space-y-4">
+          {/* Type-keuze */}
+          <div>
+            <label className="block text-xs font-medium text-slate-400 mb-2">{t('fieldAgentKind')}</label>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              {kindOptions.map(({ id, label, hint, rainbow }) => {
+                const active = kind === id;
+                return (
+                  <button
+                    key={id}
+                    type="button"
+                    onClick={() => handleKindChange(id)}
+                    className={`p-2.5 rounded-lg border text-left transition-all flex items-start gap-2 ${
+                      active
+                        ? 'border-blue-500 bg-blue-500/10 text-white'
+                        : 'border-slate-600 text-slate-400 hover:border-slate-500'
+                    }`}
+                  >
+                    <span
+                      className="w-3 h-3 rounded-full mt-0.5 flex-shrink-0 border border-white/20"
+                      style={
+                        rainbow
+                          ? { background: RAINBOW_GRADIENT }
+                          : { backgroundColor: form.color }
+                      }
+                      aria-hidden="true"
+                    />
+                    <span className="min-w-0">
+                      <span className="block text-xs font-semibold">{label}</span>
+                      <span className="block text-xs opacity-60">{hint}</span>
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
           {/* Name + Role: stacked on mobile, side-by-side on sm+ */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
@@ -131,16 +213,7 @@ export function AgentModal({ agent, onSave, onClose }: AgentModalProps) {
             </select>
           </div>
 
-          <div className="space-y-2">
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={form.is_synthesizer}
-                onChange={(e) => set('is_synthesizer', e.target.checked)}
-                className="w-4 h-4 rounded border-slate-600 bg-slate-900 text-blue-500 focus:ring-blue-500 focus:ring-offset-slate-800"
-              />
-              <span className="text-xs text-slate-300">{t('fieldIsSynthesizer')}</span>
-            </label>
+          <div>
             <label className="flex items-center gap-2 cursor-pointer">
               <input
                 type="checkbox"
@@ -150,31 +223,33 @@ export function AgentModal({ agent, onSave, onClose }: AgentModalProps) {
               />
               <span className="text-xs text-slate-300">{t('fieldIsDefault')}</span>
             </label>
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={form.is_reviewer}
-                onChange={(e) => set('is_reviewer', e.target.checked)}
-                className="w-4 h-4 rounded border-slate-600 bg-slate-900 text-blue-500 focus:ring-blue-500 focus:ring-offset-slate-800"
-              />
-              <span className="text-xs text-slate-300">{t('fieldIsReviewer')}</span>
-            </label>
           </div>
 
           <div>
             <label className="block text-xs font-medium text-slate-400 mb-2">{t('fieldColor')}</label>
-            <div className="flex gap-2 flex-wrap">
-              {COLORS.map((c) => (
-                <button
-                  key={c}
-                  onClick={() => set('color', c)}
-                  className={`w-7 h-7 rounded-lg transition-transform hover:scale-110 ${
-                    form.color === c ? 'ring-2 ring-white ring-offset-2 ring-offset-slate-800 scale-110' : ''
-                  }`}
-                  style={{ backgroundColor: c }}
+            {isIntegrator ? (
+              <div className="flex items-start gap-3 p-3 rounded-lg border border-slate-700 bg-slate-900/50">
+                <span
+                  className="w-7 h-7 rounded-lg flex-shrink-0 border border-white/20"
+                  style={{ background: RAINBOW_GRADIENT }}
+                  aria-hidden="true"
                 />
-              ))}
-            </div>
+                <p className="text-xs text-slate-400 leading-relaxed">{t('integratorColorNote')}</p>
+              </div>
+            ) : (
+              <div className="flex gap-2 flex-wrap">
+                {COLORS.map((c) => (
+                  <button
+                    key={c}
+                    onClick={() => set('color', c)}
+                    className={`w-7 h-7 rounded-lg transition-transform hover:scale-110 ${
+                      form.color === c ? 'ring-2 ring-white ring-offset-2 ring-offset-slate-800 scale-110' : ''
+                    }`}
+                    style={{ backgroundColor: c }}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
